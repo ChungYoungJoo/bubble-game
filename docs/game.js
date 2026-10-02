@@ -18,11 +18,10 @@ addEventListener('resize', fit); fit();
 const S = { A:{}, B:{}, T:{} };
 const KM = { ArrowLeft:['A','left'], ArrowRight:['A','right'], ArrowUp:['A','jump'], ' ':['A','shoot'], z:['A','jump'], x:['A','shoot'],
              a:['B','left'], d:['B','right'], w:['B','jump'], f:['B','shoot'], g:['B','shoot'] };
-let startEdge = false, numP = 1;
+let startEdge = false;
 function setKey(m, v) { const k = S[m[0]]; if (v && m[1] === 'jump' && !k.jump) k.jl = 1; k[m[1]] = v; }
 addEventListener('keydown', e => {
   if (e.key === 'Enter') startEdge = true;
-  if (mode === 'title') { if (e.key === '1' || e.key === 'ArrowUp') numP = 1; if (e.key === '2' || e.key === 'ArrowDown') numP = 2; }
   const m = KM[e.key] || KM[e.key.toLowerCase()];
   if (!m) return;
   e.preventDefault(); setKey(m, true);
@@ -36,13 +35,7 @@ document.querySelectorAll('#pad button').forEach(b => {
   b.addEventListener('pointerdown', down);
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => b.addEventListener(t, up));
 });
-cv.addEventListener('pointerdown', e => {
-  const r = cv.getBoundingClientRect(), y = (e.clientY - r.top) * H / r.height;
-  if (mode === 'title') {
-    if (y >= 136 && y < 164) { numP = 1; startEdge = true; }
-    else if (y >= 168 && y < 196) { numP = 2; startEdge = true; }
-  } else startEdge = true;
-});
+cv.addEventListener('pointerdown', () => { startEdge = true; });
 
 const padOf = i => { const l = navigator.getGamepads ? navigator.getGamepads() : []; const p = l[i]; return p && p.connected ? p : null; };
 const padBtn = (p, i) => !!(p.buttons[i] && p.buttons[i].pressed);
@@ -52,10 +45,9 @@ function pollStart() {
   for (let i = 0; i < 2; i++) { const p = padOf(i); if (p && (padBtn(p, 0) || padBtn(p, 9))) s = true; }
   if (s && !startHeld) startEdge = true;
   startHeld = s;
-  if (mode === 'title') for (let i = 0; i < 2; i++) { const p = padOf(i); if (p) { if (padBtn(p, 12)) numP = 1; if (padBtn(p, 13)) numP = 2; } }
 }
 function inp(p) {
-  const srcs = numP === 1 ? ['A', 'B', 'T'] : p.id === 0 ? ['B', 'T'] : ['A'];
+  const srcs = ['A', 'B', 'T'];
   const o = { left:0, right:0, jump:0, shoot:0, edge:0 };
   for (const s of srcs) { const k = S[s]; o.left |= k.left; o.right |= k.right; o.jump |= k.jump; o.shoot |= k.shoot; if (k.jl) { o.edge = 1; k.jl = 0; } }
   const gp = padOf(p.id);
@@ -133,7 +125,7 @@ function startLevel() {
   clearT = 0; bannerT = 110;
 }
 function newGame() {
-  level = 1; mode = 'play'; players = [mkPlayer(0)]; if (numP === 2) players.push(mkPlayer(1));
+  level = 1; mode = 'play'; players = [mkPlayer(0)];
   for (const k in S) S[k].jl = 0;
   startLevel(); sfx(523, 0.15);
 }
@@ -372,7 +364,7 @@ function update() {
   // 스테이지 클리어
   if (!enemies.length && !boss && !bubbles.some(b => b.enemy)) {
     if (++clearT === 1) sfx(784, 0.3, 'triangle', 300);
-    if (clearT > 150) { level++; startLevel(); }
+    if (clearT > 150) { level++; players.forEach(p => { p.lives = Math.max(p.lives, 3); }); startLevel(); }   // 라운드가 넘어가면 목숨 복구
   } else clearT = 0;
   for (const p of players) if (p.score > hi) hi = p.score;
 }
