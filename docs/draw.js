@@ -79,10 +79,9 @@ function drawWave(w) {
 }
 
 function drawHUD() {
-  const P1 = players[0], P2 = players[1];
+  const P1 = players[0];
   text(String(P1.score).padStart(6, '0'), 14, 15, 9, '#8f8', 'left');
   text('HI ' + String(hi).padStart(6, '0'), W / 2, 15, 9, '#ff0');
-  if (P2) text(String(P2.score).padStart(6, '0'), W - 14, 15, 9, '#8cf', 'right');
   text('R' + level, W - 14, H - 12, 9, '#fff', 'right');
   players.forEach((p, i) => {
     for (let n = 0; n < p.lives; n++) ell(i ? W - 34 - n * 13 : 18 + n * 13, H - 12, 5, 4.5, p.col.body);
@@ -122,28 +121,22 @@ function draw() {
   if (mode === 'over') {
     g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(0, 62, W, 100);
     text('GAME OVER', W / 2, 86, 22, '#f55');
-    players.forEach((p, i) => text((players.length > 1 ? (i + 1) + 'P ' : 'SCORE ') + p.score, W / 2, 112 + i * 14, 10, i ? '#8cf' : '#8f8'));
+    text('SCORE ' + players[0].score, W / 2, 112, 10, '#8f8');
     const best = Math.max(...players.map(p => p.score));
-    text(best >= hi && best > 0 ? 'NEW BEST!' : 'BEST ' + hi, W / 2, 112 + players.length * 14, 9, '#ff0');
+    text(best >= hi && best > 0 ? 'NEW BEST!' : 'BEST ' + hi, W / 2, 128, 9, '#ff0');
     if (overT > 60 && frame % 60 < 40) text('ENTER 또는 화면 터치', W / 2, 150, 9, '#fff');
   }
 }
 
 function drawTitle() {
-  text('버블 드래곤', W / 2, 44, 28, '#6fe07a');
-  drawBubble({ x:50, y:96, r:10, enemy:{}, trap:400 });
-  drawDragon(players[0] || mkPlayer(0), 92, 88, 1, false);
-  drawDragon(mkPlayer(1), 148, 88, -1, false);
-  drawBubble({ x:206, y:96, r:9, sp:'bolt' });
-  text('거품으로 적을 가둔 뒤 터뜨리세요!', W / 2, 124, 10, '#cfe');
-  [['1 PLAYER', 150], ['2 PLAYERS', 182]].forEach(([s, y], i) => {
-    const sel = numP === i + 1;
-    g.fillStyle = sel ? 'rgba(255,230,60,.2)' : 'rgba(255,255,255,.06)'; g.fillRect(64, y - 14, 128, 28);
-    g.strokeStyle = sel ? '#ff0' : '#557'; g.lineWidth = 1.5; g.strokeRect(64, y - 14, 128, 28);
-    text((sel ? '▶ ' : '') + s, W / 2, y, 12, sel ? '#ff0' : '#aab');
-  });
-  if (frame % 60 < 40) text('ENTER 또는 버튼을 눌러 시작', W / 2, 208, 9, '#fff');
-  text('BEST ' + hi, W / 2, 218, 8, '#ff0');
+  text('버블 드래곤', W / 2, 48, 28, '#6fe07a');
+  drawBubble({ x:62, y:104, r:10, enemy:{}, trap:400 });
+  drawDragon(players[0] || mkPlayer(0), 120, 96, 1, false);
+  drawBubble({ x:194, y:104, r:9, sp:'bolt' });
+  text('거품으로 적을 가둔 뒤 터뜨리세요!', W / 2, 140, 10, '#cfe');
+  text('← →  이동    ↑ / Z  점프    Space / X  거품', W / 2, 160, 8, '#aab');
+  if (frame % 60 < 40) text('ENTER 또는 화면 터치로 시작', W / 2, 188, 11, '#ff0');
+  text('BEST ' + hi, W / 2, 210, 9, '#ff0');
 }
 
 // ---------- 루프 (60fps 고정) ----------
